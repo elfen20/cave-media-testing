@@ -7,4 +7,9 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\cave-media\Cave.Media.Skia\Cave.Media.Skia.csproj" />
+    <ProjectReference Include="..\..\cave-media\Cave.Media\Cave.Media.csproj" />
+  </ItemGroup>
+
 </Project>

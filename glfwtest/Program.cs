@@ -50,7 +50,7 @@ namespace openglfw
                 if (watch.ElapsedMilliSeconds > 100)
                 {
                     millis = watch.ElapsedMilliSeconds;
-                    renderer?.SetWindowTitle($"FPS: {(float)counter * 1000 / millis:f} / Z: {zoom} / {cursorPos}");
+                    renderer?.SetWindowTitle($"FPS: {(float)counter * 1000 / millis:f} / Z: {zoom} / {cursorPos} / {renderer.WorldTranslation}");
                     watch.Reset();
                     counter = 0;
                 }
@@ -99,14 +99,15 @@ namespace openglfw
 
         private void Renderer_CursorPosChanged(object? sender, glfw3.CursorPosEventArgs e)
         {
-            cursorPos = renderer.CalculateProjectionCoordinates(e.Position);
 
             if (dragging)
             {
-                translationTemp = cursorPos - translationStart;
+                translationTemp = CalcProjectionOffset(e.Position) - translationStart;
                 CalcProjection();
             }
-            
+
+            cursorPos = renderer.CalculateProjectionCoordinates(e.Position);
+
         }
 
         private void Renderer_MouseButtonChanged(object? sender, glfw3.MouseButtonEventArgs e)
@@ -117,26 +118,32 @@ namespace openglfw
                     switch (e.State)
                     {
                         case glfw3.InputState.Press:
-                            translationStart = renderer.CalculateProjectionCoordinates(e.Position);
+                            translationStart = CalcProjectionOffset(e.Position);
                             dragging = true;
                             break;
                         case glfw3.InputState.Release:
                             dragging = false;
                             translation += translationTemp;
-                            translationTemp = Vector2.Empty;
+                            translationTemp = Vector2.Empty;                            
                             break;
                     }
                     break;
             }
         }
 
+        private Vector2 CalcProjectionOffset(Vector2 coords)
+        {
+            return renderer.CalculateProjectionCoordinates(coords) + renderer.WorldTranslation;
+        }
+
         private void CalcProjection()
         {
             IRenderSprite sprite = sprites[1];
             var scale = (float)Math.Pow(2d, zoom / 5);
-            sprite!.Scale = Vector3.Create(scale, scale, scale);
+            renderer.WorldScale = Vector2.Create(scale, scale);
             var tv = translation + translationTemp;
-            sprite!.Position = Vector3.Create(tv.X,tv.Y,0);
+            renderer.WorldTranslation = tv;
+            //sprite!.Position = Vector3.Create(tv.X,tv.Y,0);
         }
 
         private void Renderer_ScrollEvent(object? sender, glfw3.ScrollEventArgs e)
